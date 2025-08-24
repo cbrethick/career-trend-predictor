@@ -24,8 +24,8 @@ git clone https://github.com/cbrethick/career-trend-predictor.git
  3.	Enter career details → get analysis & charts on the next page.
 ⸻
 
-🌍 Live Demo
-
+[🌍 Live Demo
+](https://cbrethick.github.io/career-trend-predictor/)
 👉 View on GitHub Pages
 
 ⸻
