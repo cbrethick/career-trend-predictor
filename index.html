@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Career Trend Predictor</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #1a2a6c;
+      --secondary: #b21f1f;
+      --accent1: #fdbb2d;
+      --accent2: #21d4fd;
+      --dark: #2c3e50;
+      --light: #ecf0f1;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(-45deg, #1a2a6c, #b21f1f, #fdbb2d, #21d4fd);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
+    
+    header {
+      text-align: center;
+      padding: 20px;
+      background: var(--primary);
+      color: white;
+    }
+    
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+    }
+    
+    .page {
+      display: none;
+      padding: 30px;
+    }
+    
+    .active-page {
+      display: block;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus, select:focus {
+      border-color: var(--accent2);
+      outline: none;
+    }
+    
+    button {
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      width: 100%;
+      margin-top: 10px;
+      transition: transform 0.3s, background 0.3s;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(45deg, var(--secondary), var(--primary));
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(45deg, #7f8c8d, #95a5a6);
+    }
+    
+    .metrics-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 25px 0;
+    }
+    
+    .metric-card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      text-align: center;
+    }
+    
+    .metric-value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin: 10px 0;
+      color: var(--primary);
+    }
+    
+    .metric-title {
+      font-size: 0.9rem;
+      color: #777;
+    }
+    
+    .progress-bar {
+      height: 10px;
+      background: #eee;
+      border-radius: 5px;
+      margin: 10px 0;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(to right, var(--accent2), var(--accent1));
+      border-radius: 5px;
+    }
+    
+    .chart-container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      margin-bottom: 20px;
+    }
+    
+    .chart-title {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+      color: var(--dark);
+      text-align: center;
+    }
+    
+    .skills-list {
+      list-style-type: none;
+      margin-top: 15px;
+    }
+    
+    .skills-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+    }
+    
+    .skill-match {
+      color: #2ecc71;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .insight-box {
+      background: #e8f4fc;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+      border-left: 4px solid var(--accent2);
+    }
+    
+    .risk-indicator {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      margin-top: 10px;
+      background: #fff4e5;
+      color: #e67e22;
+    }
+    
+    .welcome-message {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .user-greeting {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+    
+    .nav-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .nav-buttons button {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Career Trend Predictor</h1>
+      <p>Explore career paths, salary trends, and future demand projections</p>
+    </header>
+    
+    <!-- Input Page -->
+    <div id="input-page" class="page active-page">
+      <div class="welcome-message">
+        <h2>Career Information</h2>
+        <p>Please provide your details to analyze career trends</p>
+      </div>
+      
+      <div class="form-group">
+        <label for="name">Name:</label>
+        <input type="text" id="name" placeholder="Enter your name" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="sector">Sector:</label>
+        <select id="sector" required></select>
+      </div>
+      
+      <div class="form-group">
+        <label for="field">Field:</label>
+        <select id="field" required></select>
+      </div>
+      
+      <div class="form-group">
+        <label for="salary-exp">Salary Expectation (LPA):</label>
+        <input type="number" id="salary-exp" placeholder="Enter expected salary" value="25" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="skills">Your Skills (comma separated):</label>
+        <input type="text" id="skills" placeholder="e.g., Green Buildings, Project Management" value="Green Buildings, Project Management" required>
+      </div>
+      
+      <button onclick="navigateToResults()">Analyze Career Path</button>
+    </div>
+    
+    <!-- Results Page -->
+    <div id="results-page" class="page">
+      <div class="welcome-message">
+        <h2>Career Analysis</h2>
+        <p class="user-greeting" id="user-greeting">Hello, [Name]</p>
+      </div>
+      
+      <div class="insight-box">
+        <p id="career-insight">Please select a career field to see analysis</p>
+        <span class="risk-indicator" id="automation-risk">Automation risk: Not calculated</span>
+      </div>
+      
+      <div class="metrics-container">
+        <div class="metric-card">
+          <div class="metric-title">Salary Alignment</div>
+          <div class="metric-value" id="salary-match">0%</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="salary-progress" style="width: 0%"></div>
+          </div>
+          <div id="salary-range">Predicted Range: - LPA</div>
+          <div id="salary-expectation">Your Expectation: - LPA</div>
+        </div>
+        
+        <div class="metric-card">
+          <div class="metric-title">Skills Analysis</div>
+          <div class="metric-value" id="skills-match">0%</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="skills-progress" style="width: 0%"></div>
+          </div>
+          <div id="skills-covered">Skills Covered: 0/0</div>
+        </div>
+        
+        <div class="metric-card">
+          <div class="metric-title">Current Salary</div>
+          <div class="metric-value" id="current-salary">- LPA</div>
+          <div class="metric-title">Demand Index: <span id="demand-index">-</span>/100</div>
+        </div>
+        
+        <div class="metric-card">
+          <div class="metric-title">Career Score</div>
+          <div class="metric-value" id="career-score">-</div>
+          <div class="metric-title">Job Satisfaction: <span id="job-satisfaction">-</span>/100</div>
+        </div>
+      </div>
+      
+      <div class="grid-2">
+        <div class="chart-container">
+          <div class="chart-title">Salary Trend & Forecast</div>
+          <canvas id="trend-chart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+          <div class="chart-title">Career Potential Radar</div>
+          <canvas id="radar-chart"></canvas>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <div class="chart-title">Matched Skills</div>
+        <ul class="skills-list" id="skills-list">
+          <li>No skills analyzed yet</li>
+        </ul>
+      </div>
+      
+      <div class="nav-buttons">
+        <button class="btn-secondary" onclick="navigateToInput()">Back to Input</button>
+        <button onclick="showFuture()">View Future Projection</button>
+      </div>
+    </div>
+  </div>
+<script>
+    // Embedded dataset
+    const data = [
+  {Year:2018,Sector:"Engineering",Field:"CS",Average_Salary:6.5,Demand_Index:70,Skills:["Programming","AI","Data Structures"],Job_Satisfaction:80,Remote_Potential:85,Automation_Risk:15},
+  {Year:2019,Sector:"Engineering",Field:"CS",Average_Salary:7.0,Demand_Index:75,Skills:["Programming","AI","Data Structures"],Job_Satisfaction:82,Remote_Potential:87,Automation_Risk:15},
+  {Year:2020,Sector:"Engineering",Field:"CS",Average_Salary:7.5,Demand_Index:78,Skills:["Programming","AI","Data Structures"],Job_Satisfaction:84,Remote_Potential:90,Automation_Risk:15},
+  {Year:2021,Sector:"Engineering",Field:"CS",Average_Salary:8.0,Demand_Index:80,Skills:["Programming","AI","Data Structures"],Job_Satisfaction:85,Remote_Potential:92,Automation_Risk:15},
+  {Year:2022,Sector:"Engineering",Field:"CS",Average_Salary:8.8,Demand_Index:85,Skills:["Programming","AI","Data Structures"],Job_Satisfaction:87,Remote_Potential:93,Automation_Risk:15},
+  {Year:2023,Sector:"Engineering",Field:"CS",Average_Salary:9.5,Demand_Index:87,Skills:["Programming","AI","Data Structures"],Job_Satisfaction:88,Remote_Potential:94,Automation_Risk:15},
+  {Year:2024,Sector:"Engineering",Field:"CS",Average_Salary:10.2,Demand_Index:90,Skills:["Programming","AI","Data Structures"],Job_Satisfaction:90,Remote_Potential:95,Automation_Risk:15},
+  {Year:2025,Sector:"Engineering",Field:"CS",Average_Salary:11.0,Demand_Index:92,Skills:["Programming","AI","Data Structures"],Job_Satisfaction:91,Remote_Potential:96,Automation_Risk:15},
+
+  {Year:2018,Sector:"Engineering", Field:"ECE", Average_Salary:5.5, Demand_Index:65,Skills:["Electronics","Signal Processing","Embedded Systems"],Job_Satisfaction:75,Remote_Potential:60,Automation_Risk:25},
+  {Year:2019,Sector:"Engineering", Field:"ECE", Average_Salary:6.0, Demand_Index:67,Skills:["Electronics","Signal Processing","Embedded Systems"],Job_Satisfaction:76,Remote_Potential:62,Automation_Risk:25},
+  {Year:2020,Sector:"Engineering", Field:"ECE", Average_Salary:6.3, Demand_Index:70,Skills:["Electronics","Signal Processing","Embedded Systems"],Job_Satisfaction:77,Remote_Potential:65,Automation_Risk:25},
+  {Year:2021,Sector:"Engineering", Field:"ECE", Average_Salary:6.7, Demand_Index:72,Skills:["Electronics","Signal Processing","Embedded Systems"],Job_Satisfaction:78,Remote_Potential:68,Automation_Risk:25},
+  {Year:2022,Sector:"Engineering", Field:"ECE", Average_Salary:7.2, Demand_Index:75,Skills:["Electronics","Signal Processing","Embedded Systems"],Job_Satisfaction:80,Remote_Potential:70,Automation_Risk:25},
+  {Year:2023,Sector:"Engineering", Field:"ECE", Average_Salary:7.8, Demand_Index:77,Skills:["Electronics","Signal Processing","Embedded Systems"],Job_Satisfaction:81,Remote_Potential:72,Automation_Risk:25},
+  {Year:2024,Sector:"Engineering", Field:"ECE", Average_Salary:8.4, Demand_Index:80,Skills:["Electronics","Signal Processing","Embedded Systems"],Job_Satisfaction:82,Remote_Potential:75,Automation_Risk:25},
+  {Year:2025,Sector:"Engineering", Field:"ECE", Average_Salary:9.0, Demand_Index:82,Skills:["Electronics","Signal Processing","Embedded Systems"],Job_Satisfaction:83,Remote_Potential:78,Automation_Risk:25},
+
+  {Year:2018,Sector:"Arts",Field:"Fashion Designer",Average_Salary:5.2,Demand_Index:64,Skills:["Creativity","Trend Analysis","Sketching"],Job_Satisfaction:85,Remote_Potential:50,Automation_Risk:30},
+  {Year:2019,Sector:"Arts",Field:"Fashion Designer",Average_Salary:5.6,Demand_Index:66,Skills:["Creativity","Trend Analysis","Sketching"],Job_Satisfaction:85,Remote_Potential:52,Automation_Risk:30},
+  {Year:2020,Sector:"Arts",Field:"Fashion Designer",Average_Salary:6.0,Demand_Index:68,Skills:["Creativity","Trend Analysis","Sketching"],Job_Satisfaction:86,Remote_Potential:55,Automation_Risk:30},
+  {Year:2021,Sector:"Arts",Field:"Fashion Designer",Average_Salary:6.5,Demand_Index:70,Skills:["Creativity","Trend Analysis","Sketching"],Job_Satisfaction:86,Remote_Potential:58,Automation_Risk:30},
+  {Year:2022,Sector:"Arts",Field:"Fashion Designer",Average_Salary:7.0,Demand_Index:72,Skills:["Creativity","Trend Analysis","Sketching"],Job_Satisfaction:87,Remote_Potential:60,Automation_Risk:30},
+  {Year:2023,Sector:"Arts",Field:"Fashion Designer",Average_Salary:7.6,Demand_Index:75,Skills:["Creativity","Trend Analysis","Sketching"],Job_Satisfaction:87,Remote_Potential:62,Automation_Risk:30},
+  {Year:2024,Sector:"Arts",Field:"Fashion Designer",Average_Salary:8.2,Demand_Index:78,Skills:["Creativity","Trend Analysis","Sketching"],Job_Satisfaction:88,Remote_Potential:65,Automation_Risk:30},
+  {Year:2025,Sector:"Arts",Field:"Fashion Designer",Average_Salary:8.9,Demand_Index:82,Skills:["Creativity","Trend Analysis","Sketching"],Job_Satisfaction:88,Remote_Potential:68,Automation_Risk:30},
+
+  {Year:2018,Sector:"Medical",Field:"Doctor",Average_Salary:7.0,Demand_Index:80,Skills:["Patient Care","Diagnosis","Medical Knowledge"],Job_Satisfaction:90,Remote_Potential:20,Automation_Risk:10},
+  {Year:2019,Sector:"Medical",Field:"Doctor",Average_Salary:7.5,Demand_Index:82,Skills:["Patient Care","Diagnosis","Medical Knowledge"],Job_Satisfaction:90,Remote_Potential:22,Automation_Risk:10},
+  {Year:2020,Sector:"Medical",Field:"Doctor",Average_Salary:8.0,Demand_Index:84,Skills:["Patient Care","Diagnosis","Medical Knowledge"],Job_Satisfaction:91,Remote_Potential:25,Automation_Risk:10},
+  {Year:2021,Sector:"Medical",Field:"Doctor",Average_Salary:8.6,Demand_Index:86,Skills:["Patient Care","Diagnosis","Medical Knowledge"],Job_Satisfaction:91,Remote_Potential:28,Automation_Risk:10},
+  {Year:2022,Sector:"Medical",Field:"Doctor",Average_Salary:9.3,Demand_Index:88,Skills:["Patient Care","Diagnosis","Medical Knowledge"],Job_Satisfaction:92,Remote_Potential:30,Automation_Risk:10},
+  {Year:2023,Sector:"Medical",Field:"Doctor",Average_Salary:10.0,Demand_Index:90,Skills:["Patient Care","Diagnosis","Medical Knowledge"],Job_Satisfaction:92,Remote_Potential:32,Automation_Risk:10},
+  {Year:2024,Sector:"Medical",Field:"Doctor",Average_Salary:10.8,Demand_Index:91,Skills:["Patient Care","Diagnosis","Medical Knowledge"],Job_Satisfaction:93,Remote_Potential:35,Automation_Risk:10},
+  {Year:2025,Sector:"Medical",Field:"Doctor",Average_Salary:11.5,Demand_Index:93,Skills:["Patient Care","Diagnosis","Medical Knowledge"],Job_Satisfaction:93,Remote_Potential:38,Automation_Risk:10},
+
+  {Year:2018, Sector:"Finance", Field:"Accounting", Average_Salary:5.0, Demand_Index:60,Skills:["Financial Reporting","Taxation","Auditing"],Job_Satisfaction:75,Remote_Potential:70,Automation_Risk:45},
+  {Year:2019, Sector:"Finance", Field:"Accounting", Average_Salary:5.3, Demand_Index:63,Skills:["Financial Reporting","Taxation","Auditing"],Job_Satisfaction:76,Remote_Potential:72,Automation_Risk:45},
+  {Year:2020, Sector:"Finance", Field:"Accounting", Average_Salary:5.7, Demand_Index:65,Skills:["Financial Reporting","Taxation","Auditing"],Job_Satisfaction:77,Remote_Potential:75,Automation_Risk:45},
+  {Year:2021, Sector:"Finance", Field:"Accounting", Average_Salary:6.1, Demand_Index:67,Skills:["Financial Reporting","Taxation","Auditing"],Job_Satisfaction:78,Remote_Potential:77,Automation_Risk:45},
+  {Year:2022, Sector:"Finance", Field:"Accounting", Average_Salary:6.6, Demand_Index:70,Skills:["Financial Reporting","Taxation","Auditing"],Job_Satisfaction:80,Remote_Potential:80,Automation_Risk:45},
+  {Year:2023, Sector:"Finance", Field:"Accounting", Average_Salary:7.2, Demand_Index:73,Skills:["Financial Reporting","Taxation","Auditing"],Job_Satisfaction:81,Remote_Potential:82,Automation_Risk:45},
+  {Year:2024, Sector:"Finance", Field:"Accounting", Average_Salary:7.9, Demand_Index:75,Skills:["Financial Reporting","Taxation","Auditing"],Job_Satisfaction:82,Remote_Potential:85,Automation_Risk:45},
+  {Year:2025, Sector:"Finance", Field:"Accounting", Average_Salary:8.5, Demand_Index:78,Skills:["Financial Reporting","Taxation","Auditing"],Job_Satisfaction:83,Remote_Potential:87,Automation_Risk:45},
+   
+  {Year:2018, Sector:"Law", Field:"Corporate", Average_Salary:4.5, Demand_Index:55,Skills:["Legal Research","Contract Drafting","Negotiation"],Job_Satisfaction:80,Remote_Potential:60,Automation_Risk:25},
+  {Year:2019, Sector:"Law", Field:"Corporate", Average_Salary:4.8, Demand_Index:57,Skills:["Legal Research","Contract Drafting","Negotiation"],Job_Satisfaction:80,Remote_Potential:62,Automation_Risk:25},
+  {Year:2020, Sector:"Law", Field:"Corporate", Average_Salary:5.0, Demand_Index:59,Skills:["Legal Research","Contract Drafting","Negotiation"],Job_Satisfaction:81,Remote_Potential:65,Automation_Risk:25},
+  {Year:2021, Sector:"Law", Field:"Corporate", Average_Salary:5.3, Demand_Index:60,Skills:["Legal Research","Contract Drafting","Negotiation"],Job_Satisfaction:81,Remote_Potential:67,Automation_Risk:25},
+  {Year:2022, Sector:"Law", Field:"Corporate", Average_Salary:5.6, Demand_Index:62,Skills:["Legal Research","Contract Drafting","Negotiation"],Job_Satisfaction:82,Remote_Potential:70,Automation_Risk:25},
+  {Year:2023, Sector:"Law", Field:"Corporate", Average_Salary:6.0, Demand_Index:64,Skills:["Legal Research","Contract Drafting","Negotiation"],Job_Satisfaction:82,Remote_Potential:72,Automation_Risk:25},
+  {Year:2024, Sector:"Law", Field:"Corporate", Average_Salary:6.4, Demand_Index:67,Skills:["Legal Research","Contract Drafting","Negotiation"],Job_Satisfaction:83,Remote_Potential:75,Automation_Risk:25},
+  {Year:2025, Sector:"Law", Field:"Corporate", Average_Salary:6.9, Demand_Index:70,Skills:["Legal Research","Contract Drafting","Negotiation"],Job_Satisfaction:83,Remote_Potential:77,Automation_Risk:25},
+  
+  {Year:2018, Sector:"Education", Field:"Teacher", Average_Salary:4.0, Demand_Index:65,Skills:["Curriculum Development","Classroom Management","Instructional Design"],Job_Satisfaction:85,Remote_Potential:40,Automation_Risk:20},
+  {Year:2019, Sector:"Education", Field:"Teacher", Average_Salary:4.2, Demand_Index:66,Skills:["Curriculum Development","Classroom Management","Instructional Design"],Job_Satisfaction:85,Remote_Potential:45,Automation_Risk:20},
+  {Year:2020, Sector:"Education", Field:"Teacher", Average_Salary:4.5, Demand_Index:67,Skills:["Curriculum Development","Classroom Management","Instructional Design"],Job_Satisfaction:86,Remote_Potential:50,Automation_Risk:20},
+  {Year:2021, Sector:"Education", Field:"Teacher", Average_Salary:4.8, Demand_Index:68,Skills:["Curriculum Development","Classroom Management","Instructional Design"],Job_Satisfaction:86,Remote_Potential:55,Automation_Risk:20},
+  {Year:2022, Sector:"Education", Field:"Teacher", Average_Salary:5.2, Demand_Index:70,Skills:["Curriculum Development","Classroom Management","Instructional Design"],Job_Satisfaction:87,Remote_Potential:60,Automation_Risk:20},
+  {Year:2023, Sector:"Education", Field:"Teacher", Average_Salary:5.6, Demand_Index:72,Skills:["Curriculum Development","Classroom Management","Instructional Design"],Job_Satisfaction:87,Remote_Potential:65,Automation_Risk:20},
+  {Year:2024, Sector:"Education", Field:"Teacher", Average_Salary:6.0, Demand_Index:74,Skills:["Curriculum Development","Classroom Management","Instructional Design"],Job_Satisfaction:88,Remote_Potential:70,Automation_Risk:20},
+  {Year:2025, Sector:"Education", Field:"Teacher", Average_Salary:6.5, Demand_Index:76,Skills:["Curriculum Development","Classroom Management","Instructional Design"],Job_Satisfaction:88,Remote_Potential:75,Automation_Risk:20},
+  
+  {Year:2018, Sector:"Engineering", Field:"EEE", Average_Salary:5.5, Demand_Index:65,Skills:["Circuit Design","Power Systems","Control Systems"],Job_Satisfaction:78,Remote_Potential:55,Automation_Risk:30},
+  {Year:2019, Sector:"Engineering", Field:"EEE", Average_Salary:5.8, Demand_Index:67,Skills:["Circuit Design","Power Systems","Control Systems"],Job_Satisfaction:79,Remote_Potential:57,Automation_Risk:30},
+  {Year:2020, Sector:"Engineering", Field:"EEE", Average_Salary:6.2, Demand_Index:70,Skills:["Circuit Design","Power Systems","Control Systems"],Job_Satisfaction:80,Remote_Potential:60,Automation_Risk:30},
+  {Year:2021, Sector:"Engineering", Field:"EEE", Average_Salary:6.8, Demand_Index:72,Skills:["Circuit Design","Power Systems","Control Systems"],Job_Satisfaction:81,Remote_Potential:62,Automation_Risk:30},
+  {Year:2022, Sector:"Engineering", Field:"EEE", Average_Salary:7.2, Demand_Index:75,Skills:["Circuit Design","Power Systems","Control Systems"],Job_Satisfaction:82,Remote_Potential:65,Automation_Risk:30},
+  {Year:2023, Sector:"Engineering", Field:"EEE", Average_Salary:7.8, Demand_Index:78,Skills:["Circuit Design","Power Systems","Control Systems"],Job_Satisfaction:83,Remote_Potential:67,Automation_Risk:30},
+  {Year:2024, Sector:"Engineering", Field:"EEE", Average_Salary:8.4, Demand_Index:82,Skills:["Circuit Design","Power Systems","Control Systems"],Job_Satisfaction:84,Remote_Potential:70,Automation_Risk:30},
+  {Year:2025, Sector:"Engineering", Field:"EEE", Average_Salary:9.0, Demand_Index:85,Skills:["Circuit Design","Power Systems","Control Systems"],Job_Satisfaction:85,Remote_Potential:72,Automation_Risk:30},
+  
+  {Year:2018, Sector:"Engineering", Field:"Mechanical", Average_Salary:5.2, Demand_Index:60,Skills:["CAD","Thermodynamics","Manufacturing Processes"],Job_Satisfaction:77,Remote_Potential:45,Automation_Risk:40},
+  {Year:2019, Sector:"Engineering", Field:"Mechanical", Average_Salary:5.5, Demand_Index:62,Skills:["CAD","Thermodynamics","Manufacturing Processes"],Job_Satisfaction:78,Remote_Potential:47,Automation_Risk:40},
+  {Year:2020, Sector:"Engineering", Field:"Mechanical", Average_Salary:5.8, Demand_Index:64,Skills:["CAD","Thermodynamics","Manufacturing Processes"],Job_Satisfaction:79,Remote_Potential:50,Automation_Risk:40},
+  {Year:2021, Sector:"Engineering", Field:"Mechanical", Average_Salary:6.2, Demand_Index:66,Skills:["CAD","Thermodynamics","Manufacturing Processes"],Job_Satisfaction:80,Remote_Potential:52,Automation_Risk:40},
+  {Year:2022, Sector:"Engineering", Field:"Mechanical", Average_Salary:6.6, Demand_Index:70,Skills:["CAD","Thermodynamics","Manufacturing Processes"],Job_Satisfaction:81,Remote_Potential:55,Automation_Risk:40},
+  {Year:2023, Sector:"Engineering", Field:"Mechanical", Average_Salary:7.1, Demand_Index:73,Skills:["CAD","Thermodynamics","Manufacturing Processes"],Job_Satisfaction:82,Remote_Potential:57,Automation_Risk:40},
+  {Year:2024, Sector:"Engineering", Field:"Mechanical", Average_Salary:7.6, Demand_Index:76,Skills:["CAD","Thermodynamics","Manufacturing Processes"],Job_Satisfaction:83,Remote_Potential:60,Automation_Risk:40},
+  {Year:2025, Sector:"Engineering", Field:"Mechanical", Average_Salary:8.2, Demand_Index:80,Skills:["CAD","Thermodynamics","Manufacturing Processes"],Job_Satisfaction:84,Remote_Potential:62,Automation_Risk:40},
+
+  {Year:2018, Sector:"Engineering", Field:"Civil", Average_Salary:4.8, Demand_Index:55,Skills:["Green Buildings","Project Management","Structural Design"],Job_Satisfaction:75,Remote_Potential:40,Automation_Risk:35},
+  {Year:2019, Sector:"Engineering", Field:"Civil", Average_Salary:5.0, Demand_Index:57,Skills:["Green Buildings","Project Management","Structural Design"],Job_Satisfaction:76,Remote_Potential:42,Automation_Risk:35},
+  {Year:2020, Sector:"Engineering", Field:"Civil", Average_Salary:5.3, Demand_Index:59,Skills:["Green Buildings","Project Management","Structural Design"],Job_Satisfaction:77,Remote_Potential:45,Automation_Risk:35},
+  {Year:2021, Sector:"Engineering", Field:"Civil", Average_Salary:5.6, Demand_Index:62,Skills:["Green Buildings","Project Management","Structural Design"],Job_Satisfaction:78,Remote_Potential:48,Automation_Risk:35},
+  {Year:2022, Sector:"Engineering", Field:"Civil", Average_Salary:6.0, Demand_Index:65,Skills:["Green Buildings","Project Management","Structural Design"],Job_Satisfaction:80,Remote_Potential:50,Automation_Risk:35},
+  {Year:2023, Sector:"Engineering", Field:"Civil", Average_Salary:6.4, Demand_Index:68,Skills:["Green Buildings","Project Management","Structural Design"],Job_Satisfaction:81,Remote_Potential:52,Automation_Risk:35},
+  {Year:2024, Sector:"Engineering", Field:"Civil", Average_Salary:6.8, Demand_Index:70,Skills:["Green Buildings","Project Management","Structural Design"],Job_Satisfaction:82,Remote_Potential:55,Automation_Risk:35},
+  {Year:2025, Sector:"Engineering", Field:"Civil", Average_Salary:7.2, Demand_Index:73,Skills:["Green Buildings","Project Management","Structural Design"],Job_Satisfaction:83,Remote_Potential:58,Automation_Risk:35},
+   
+  {Year:2018, Sector:"Medical", Field:"Dentist", Average_Salary:6.0, Demand_Index:70,Skills:["Oral Surgery","Prosthodontics","Periodontics"],Job_Satisfaction:88,Remote_Potential:15,Automation_Risk:12},
+  {Year:2019, Sector:"Medical", Field:"Dentist", Average_Salary:6.3, Demand_Index:72,Skills:["Oral Surgery","Prosthodontics","Periodontics"],Job_Satisfaction:88,Remote_Potential:17,Automation_Risk:12},
+  {Year:2020, Sector:"Medical", Field:"Dentist", Average_Salary:6.7, Demand_Index:74,Skills:["Oral Surgery","Prosthodontics","Periodontics"],Job_Satisfaction:89,Remote_Potential:20,Automation_Risk:12},
+  {Year:2021, Sector:"Medical", Field:"Dentist", Average_Salary:7.2, Demand_Index:76,Skills:["Oral Surgery","Prosthodontics","Periodontics"],Job_Satisfaction:89,Remote_Potential:22,Automation_Risk:12},
+  {Year:2022, Sector:"Medical", Field:"Dentist", Average_Salary:7.7, Demand_Index:78,Skills:["Oral Surgery","Prosthodontics","Periodontics"],Job_Satisfaction:90,Remote_Potential:25,Automation_Risk:12},
+  {Year:2023, Sector:"Medical", Field:"Dentist", Average_Salary:8.3, Demand_Index:80,Skills:["Oral Surgery","Prosthodontics","Periodontics"],Job_Satisfaction:90,Remote_Potential:27,Automation_Risk:12},
+  {Year:2024, Sector:"Medical", Field:"Dentist", Average_Salary:8.9, Demand_Index:82,Skills:["Oral Surgery","Prosthodontics","Periodontics"],Job_Satisfaction:91,Remote_Potential:30,Automation_Risk:12},
+  {Year:2025, Sector:"Medical", Field:"Dentist", Average_Salary:9.5, Demand_Index:84,Skills:["Oral Surgery","Prosthodontics","Periodontics"],Job_Satisfaction:91,Remote_Potential:32,Automation_Risk:12},
+
+  {Year:2018, Sector:"Medical", Field:"Nurse", Average_Salary:4.5, Demand_Index:65,Skills:["Patient Care","Medication Administration","Emergency Response"],Job_Satisfaction:83,Remote_Potential:25,Automation_Risk:15},
+  {Year:2019, Sector:"Medical", Field:"Nurse", Average_Salary:4.8, Demand_Index:67,Skills:["Patient Care","Medication Administration","Emergency Response"],Job_Satisfaction:84,Remote_Potential:27,Automation_Risk:15},
+  {Year:2020, Sector:"Medical", Field:"Nurse", Average_Salary:5.2, Demand_Index:69,Skills:["Patient Care","Medication Administration","Emergency Response"],Job_Satisfaction:85,Remote_Potential:30,Automation_Risk:15},
+  {Year:2021, Sector:"Medical", Field:"Nurse", Average_Salary:5.6, Demand_Index:71,Skills:["Patient Care","Medication Administration","Emergency Response"],Job_Satisfaction:86,Remote_Potential:32,Automation_Risk:15},
+  {Year:2022, Sector:"Medical", Field:"Nurse", Average_Salary:6.0, Demand_Index:73,Skills:["Patient Care","Medication Administration","Emergency Response"],Job_Satisfaction:87,Remote_Potential:35,Automation_Risk:15},
+  {Year:2023, Sector:"Medical", Field:"Nurse", Average_Salary:6.4, Demand_Index:75,Skills:["Patient Care","Medication Administration","Emergency Response"],Job_Satisfaction:88,Remote_Potential:37,Automation_Risk:15},
+  {Year:2024, Sector:"Medical", Field:"Nurse", Average_Salary:6.8, Demand_Index:77,Skills:["Patient Care","Medication Administration","Emergency Response"],Job_Satisfaction:89,Remote_Potential:40,Automation_Risk:15},
+  {Year:2025, Sector:"Medical", Field:"Nurse", Average_Salary:7.2, Demand_Index:80,Skills:["Patient Care","Medication Administration","Emergency Response"],Job_Satisfaction:90,Remote_Potential:42,Automation_Risk:15},
+
+  {Year:2018, Sector:"Medical", Field:"Pharmacist", Average_Salary:5.0, Demand_Index:68,Skills:["Medication Therapy Management","Pharmaceutical Care","Drug Interactions"],Job_Satisfaction:82,Remote_Potential:55,Automation_Risk:35},
+  {Year:2019, Sector:"Medical", Field:"Pharmacist", Average_Salary:5.3, Demand_Index:70,Skills:["Medication Therapy Management","Pharmaceutical Care","Drug Interactions"],Job_Satisfaction:82,Remote_Potential:57,Automation_Risk:35},
+  {Year:2020, Sector:"Medical", Field:"Pharmacist", Average_Salary:5.7, Demand_Index:72,Skills:["Medication Therapy Management","Pharmaceutical Care","Drug Interactions"],Job_Satisfaction:83,Remote_Potential:60,Automation_Risk:35},
+  {Year:2021, Sector:"Medical", Field:"Pharmacist", Average_Salary:6.1, Demand_Index:74,Skills:["Medication Therapy Management","Pharmaceutical Care","Drug Interactions"],Job_Satisfaction:83,Remote_Potential:62,Automation_Risk:35},
+  {Year:2022, Sector:"Medical", Field:"Pharmacist", Average_Salary:6.6, Demand_Index:76,Skills:["Medication Therapy Management","Pharmaceutical Care","Drug Interactions"],Job_Satisfaction:84,Remote_Potential:65,Automation_Risk:35},
+  {Year:2023, Sector:"Medical", Field:"Pharmacist", Average_Salary:7.0, Demand_Index:78,Skills:["Medication Therapy Management","Pharmaceutical Care","Drug Interactions"],Job_Satisfaction:84,Remote_Potential:67,Automation_Risk:35},
+  {Year:2024, Sector:"Medical", Field:"Pharmacist", Average_Salary:7.5, Demand_Index:80,Skills:["Medication Therapy Management","Pharmaceutical Care","Drug Interactions"],Job_Satisfaction:85,Remote_Potential:70,Automation_Risk:35},
+  {Year:2025, Sector:"Medical", Field:"Pharmacist", Average_Salary:8.0, Demand_Index:83,Skills:["Medication Therapy Management","Pharmaceutical Care","Drug Interactions"],Job_Satisfaction:85,Remote_Potential:72,Automation_Risk:35},
+
+  {Year:2018, Sector:"Medical", Field:"Biotech", Average_Salary:5.5, Demand_Index:69,Skills:["Genetic Engineering","Cell Culture","Bioinformatics"],Job_Satisfaction:81,Remote_Potential:45,Automation_Risk:25},
+  {Year:2019, Sector:"Medical", Field:"Biotech", Average_Salary:5.9, Demand_Index:71,Skills:["Genetic Engineering","Cell Culture","Bioinformatics"],Job_Satisfaction:82,Remote_Potential:47,Automation_Risk:25},
+  {Year:2020, Sector:"Medical", Field:"Biotech", Average_Salary:6.4, Demand_Index:73,Skills:["Genetic Engineering","Cell Culture","Bioinformatics"],Job_Satisfaction:83,Remote_Potential:50,Automation_Risk:25},
+  {Year:2021, Sector:"Medical", Field:"Biotech", Average_Salary:7.0, Demand_Index:76,Skills:["Genetic Engineering","Cell Culture","Bioinformatics"],Job_Satisfaction:84,Remote_Potential:52,Automation_Risk:25},
+  {Year:2022, Sector:"Medical", Field:"Biotech", Average_Salary:7.6, Demand_Index:78,Skills:["Genetic Engineering","Cell Culture","Bioinformatics"],Job_Satisfaction:85,Remote_Potential:55,Automation_Risk:25},
+  {Year:2023, Sector:"Medical", Field:"Biotech", Average_Salary:8.2, Demand_Index:81,Skills:["Genetic Engineering","Cell Culture","Bioinformatics"],Job_Satisfaction:86,Remote_Potential:57,Automation_Risk:25},
+  {Year:2024, Sector:"Medical", Field:"Biotech", Average_Salary:8.8, Demand_Index:84,Skills:["Genetic Engineering","Cell Culture","Bioinformatics"],Job_Satisfaction:87,Remote_Potential:60,Automation_Risk:25},
+  {Year:2025, Sector:"Medical", Field:"Biotech", Average_Salary:9.5, Demand_Index:87,Skills:["Genetic Engineering","Cell Culture","Bioinformatics"],Job_Satisfaction:88,Remote_Potential:62,Automation_Risk:25},
+
+  {Year:2018, Sector:"Finance", Field:"Banking", Average_Salary:6.0, Demand_Index:72,Skills:["Financial Analysis","Risk Management","Customer Service"],Job_Satisfaction:78,Remote_Potential:65,Automation_Risk:50},
+  {Year:2019, Sector:"Finance", Field:"Banking", Average_Salary:6.4, Demand_Index:74,Skills:["Financial Analysis","Risk Management","Customer Service"],Job_Satisfaction:79,Remote_Potential:67,Automation_Risk:50},
+  {Year:2020, Sector:"Finance", Field:"Banking", Average_Salary:6.9, Demand_Index:76,Skills:["Financial Analysis","Risk Management","Customer Service"],Job_Satisfaction:80,Remote_Potential:70,Automation_Risk:50},
+  {Year:2021, Sector:"Finance", Field:"Banking", Average_Salary:7.4, Demand_Index:78,Skills:["Financial Analysis","Risk Management","Customer Service"],Job_Satisfaction:81,Remote_Potential:72,Automation_Risk:50},
+  {Year:2022, Sector:"Finance", Field:"Banking", Average_Salary:8.0, Demand_Index:80,Skills:["Financial Analysis","Risk Management","Customer Service"],Job_Satisfaction:82,Remote_Potential:75,Automation_Risk:50},
+  {Year:2023, Sector:"Finance", Field:"Banking", Average_Salary:8.6, Demand_Index:82,Skills:["Financial Analysis","Risk Management","Customer Service"],Job_Satisfaction:83,Remote_Potential:77,Automation_Risk:50},
+  {Year:2024, Sector:"Finance", Field:"Banking", Average_Salary:9.2, Demand_Index:85,Skills:["Financial Analysis","Risk Management","Customer Service"],Job_Satisfaction:84,Remote_Potential:80,Automation_Risk:50},
+  {Year:2025, Sector:"Finance", Field:"Banking", Average_Salary:9.8, Demand_Index:87,Skills:["Financial Analysis","Risk Management","Customer Service"],Job_Satisfaction:85,Remote_Potential:82,Automation_Risk:50}, 
+
+    {Year:2018, Sector:"Finance", Field:"Investment Analyst", Average_Salary:7.0, Demand_Index:75,Skills:["Financial Modeling","Valuation","Market Research"],Job_Satisfaction:84,Remote_Potential:75,Automation_Risk:30},
+  {Year:2019, Sector:"Finance", Field:"Investment Analyst", Average_Salary:7.4, Demand_Index:77,Skills:["Financial Modeling","Valuation","Market Research"],Job_Satisfaction:85,Remote_Potential:77,Automation_Risk:30},
+  {Year:2020, Sector:"Finance", Field:"Investment Analyst", Average_Salary:7.9, Demand_Index:79,Skills:["Financial Modeling","Valuation","Market Research"],Job_Satisfaction:86,Remote_Potential:80,Automation_Risk:30},
+  {Year:2021, Sector:"Finance", Field:"Investment Analyst", Average_Salary:8.5, Demand_Index:81,Skills:["Financial Modeling","Valuation","Market Research"],Job_Satisfaction:87,Remote_Potential:82,Automation_Risk:30},
+  {Year:2022, Sector:"Finance", Field:"Investment Analyst", Average_Salary:9.2, Demand_Index:84,Skills:["Financial Modeling","Valuation","Market Research"],Job_Satisfaction:88,Remote_Potential:85,Automation_Risk:30},
+  {Year:2023, Sector:"Finance", Field:"Investment Analyst", Average_Salary:9.8, Demand_Index:86,Skills:["Financial Modeling","Valuation","Market Research"],Job_Satisfaction:89,Remote_Potential:87,Automation_Risk:30},
+  {Year:2024, Sector:"Finance", Field:"Investment Analyst", Average_Salary:10.5, Demand_Index:89,Skills:["Financial Modeling","Valuation","Market Research"],Job_Satisfaction:90,Remote_Potential:90,Automation_Risk:30},
+  {Year:2025, Sector:"Finance", Field:"Investment Analyst", Average_Salary:11.2, Demand_Index:91,Skills:["Financial Modeling","Valuation","Market Research"],Job_Satisfaction:91,Remote_Potential:92,Automation_Risk:30},
+
+  {Year:2018, Sector:"Finance", Field:"Investment Analyst", Average_Salary:7.0, Demand_Index:75, Skills:["Financial Modeling","Valuation","Market Research"], Job_Satisfaction:84, Remote_Potential:75, Automation_Risk:30},
+{Year:2019, Sector:"Finance", Field:"Investment Analyst", Average_Salary:7.4, Demand_Index:77, Skills:["Financial Modeling","Valuation","Market Research"], Job_Satisfaction:85, Remote_Potential:77, Automation_Risk:30},
+{Year:2020, Sector:"Finance", Field:"Investment Analyst", Average_Salary:7.9, Demand_Index:79, Skills:["Financial Modeling","Valuation","Market Research"], Job_Satisfaction:86, Remote_Potential:80, Automation_Risk:30},
+{Year:2021, Sector:"Finance", Field:"Investment Analyst", Average_Salary:8.5, Demand_Index:81, Skills:["Financial Modeling","Valuation","Market Research"], Job_Satisfaction:87, Remote_Potential:82, Automation_Risk:30},
+{Year:2022, Sector:"Finance", Field:"Investment Analyst", Average_Salary:9.2, Demand_Index:84, Skills:["Financial Modeling","Valuation","Market Research"], Job_Satisfaction:88, Remote_Potential:85, Automation_Risk:30},
+{Year:2023, Sector:"Finance", Field:"Investment Analyst", Average_Salary:9.8, Demand_Index:86, Skills:["Financial Modeling","Valuation","Market Research"], Job_Satisfaction:89, Remote_Potential:87, Automation_Risk:30},
+{Year:2024, Sector:"Finance", Field:"Investment Analyst", Average_Salary:10.5, Demand_Index:89, Skills:["Financial Modeling","Valuation","Market Research"], Job_Satisfaction:90, Remote_Potential:90, Automation_Risk:30},
+{Year:2025, Sector:"Finance", Field:"Investment Analyst", Average_Salary:11.2, Demand_Index:91, Skills:["Financial Modeling","Valuation","Market Research"], Job_Satisfaction:91, Remote_Potential:92, Automation_Risk:30},
+
+{Year:2018, Sector:"Finance", Field:"Chartered Accountant", Average_Salary:6.2, Demand_Index:70, Skills:["Accounting","Auditing","Tax Law","Compliance"], Job_Satisfaction:80, Remote_Potential:60, Automation_Risk:45},
+{Year:2019, Sector:"Finance", Field:"Chartered Accountant", Average_Salary:6.6, Demand_Index:72, Skills:["Accounting","Auditing","Tax Law","Compliance"], Job_Satisfaction:81, Remote_Potential:62, Automation_Risk:45},
+{Year:2020, Sector:"Finance", Field:"Chartered Accountant", Average_Salary:7.1, Demand_Index:74, Skills:["Accounting","Auditing","Tax Law","Compliance"], Job_Satisfaction:82, Remote_Potential:65, Automation_Risk:45},
+{Year:2021, Sector:"Finance", Field:"Chartered Accountant", Average_Salary:7.6, Demand_Index:76, Skills:["Accounting","Auditing","Tax Law","Compliance"], Job_Satisfaction:83, Remote_Potential:68, Automation_Risk:45},
+{Year:2022, Sector:"Finance", Field:"Chartered Accountant", Average_Salary:8.2, Demand_Index:78, Skills:["Accounting","Auditing","Tax Law","Compliance"], Job_Satisfaction:84, Remote_Potential:70, Automation_Risk:45},
+{Year:2023, Sector:"Finance", Field:"Chartered Accountant", Average_Salary:8.7, Demand_Index:80, Skills:["Accounting","Auditing","Tax Law","Compliance"], Job_Satisfaction:85, Remote_Potential:73, Automation_Risk:45},
+{Year:2024, Sector:"Finance", Field:"Chartered Accountant", Average_Salary:9.3, Demand_Index:83, Skills:["Accounting","Auditing","Tax Law","Compliance"], Job_Satisfaction:86, Remote_Potential:75, Automation_Risk:45},
+{Year:2025, Sector:"Finance", Field:"Chartered Accountant", Average_Salary:9.9, Demand_Index:85, Skills:["Accounting","Auditing","Tax Law","Compliance"], Job_Satisfaction:87, Remote_Potential:78, Automation_Risk:45},
+
+{Year:2018, Sector:"Finance", Field:"Financial Analyst", Average_Salary:5.8, Demand_Index:68, Skills:["Data Analysis","Excel","Financial Reporting","Budgeting"], Job_Satisfaction:78, Remote_Potential:70, Automation_Risk:40},
+{Year:2019, Sector:"Finance", Field:"Financial Analyst", Average_Salary:6.2, Demand_Index:70, Skills:["Data Analysis","Excel","Financial Reporting","Budgeting"], Job_Satisfaction:79, Remote_Potential:72, Automation_Risk:40},
+{Year:2020, Sector:"Finance", Field:"Financial Analyst", Average_Salary:6.7, Demand_Index:72, Skills:["Data Analysis","Excel","Financial Reporting","Budgeting"], Job_Satisfaction:80, Remote_Potential:75, Automation_Risk:40},
+{Year:2021, Sector:"Finance", Field:"Financial Analyst", Average_Salary:7.2, Demand_Index:75, Skills:["Data Analysis","Excel","Financial Reporting","Budgeting"], Job_Satisfaction:81, Remote_Potential:77, Automation_Risk:40},
+{Year:2022, Sector:"Finance", Field:"Financial Analyst", Average_Salary:7.8, Demand_Index:77, Skills:["Data Analysis","Excel","Financial Reporting","Budgeting"], Job_Satisfaction:82, Remote_Potential:80, Automation_Risk:40},
+{Year:2023, Sector:"Finance", Field:"Financial Analyst", Average_Salary:8.4, Demand_Index:80, Skills:["Data Analysis","Excel","Financial Reporting","Budgeting"], Job_Satisfaction:83, Remote_Potential:82, Automation_Risk:40},
+{Year:2024, Sector:"Finance", Field:"Financial Analyst", Average_Salary:9.0, Demand_Index:83, Skills:["Data Analysis","Excel","Financial Reporting","Budgeting"], Job_Satisfaction:84, Remote_Potential:85, Automation_Risk:40},
+{Year:2025, Sector:"Finance", Field:"Financial Analyst", Average_Salary:9.6, Demand_Index:86, Skills:["Data Analysis","Excel","Financial Reporting","Budgeting"], Job_Satisfaction:85, Remote_Potential:87, Automation_Risk:40},
+
+{Year:2018, Sector:"Finance", Field:"FinTech", Average_Salary:6.5, Demand_Index:73, Skills:["Blockchain","Python","Data Security","APIs"], Job_Satisfaction:88, Remote_Potential:85, Automation_Risk:20},
+{Year:2019, Sector:"Finance", Field:"FinTech", Average_Salary:7.0, Demand_Index:75, Skills:["Blockchain","Python","Data Security","APIs"], Job_Satisfaction:88, Remote_Potential:85, Automation_Risk:20},
+{Year:2020, Sector:"Finance", Field:"FinTech", Average_Salary:7.6, Demand_Index:78, Skills:["Blockchain","Python","Data Security","APIs"], Job_Satisfaction:89, Remote_Potential:86, Automation_Risk:20},
+{Year:2021, Sector:"Finance", Field:"FinTech", Average_Salary:8.3, Demand_Index:81, Skills:["Blockchain","Python","Data Security","APIs"], Job_Satisfaction:89, Remote_Potential:87, Automation_Risk:20},
+{Year:2022, Sector:"Finance", Field:"FinTech", Average_Salary:9.0, Demand_Index:84, Skills:["Blockchain","Python","Data Security","APIs"], Job_Satisfaction:90, Remote_Potential:88, Automation_Risk:20},
+{Year:2023, Sector:"Finance", Field:"FinTech", Average_Salary:9.8, Demand_Index:87, Skills:["Blockchain","Python","Data Security","APIs"], Job_Satisfaction:90, Remote_Potential:89, Automation_Risk:20},
+{Year:2024, Sector:"Finance", Field:"FinTech", Average_Salary:10.6, Demand_Index:90, Skills:["Blockchain","Python","Data Security","APIs"], Job_Satisfaction:91, Remote_Potential:90, Automation_Risk:20},
+{Year:2025, Sector:"Finance", Field:"FinTech", Average_Salary:11.5, Demand_Index:93, Skills:["Blockchain","Python","Data Security","APIs"], Job_Satisfaction:91, Remote_Potential:92, Automation_Risk:20},
+
+{Year:2018, Sector:"Arts", Field:"Designer", Average_Salary:5.0, Demand_Index:65, Skills:["Adobe Creative Suite","UI/UX","Typography","Branding"], Job_Satisfaction:82, Remote_Potential:90, Automation_Risk:25},
+{Year:2019, Sector:"Arts", Field:"Designer", Average_Salary:5.4, Demand_Index:67, Skills:["Adobe Creative Suite","UI/UX","Typography","Branding"], Job_Satisfaction:83, Remote_Potential:90, Automation_Risk:25},
+{Year:2020, Sector:"Arts", Field:"Designer", Average_Salary:5.9, Demand_Index:70, Skills:["Adobe Creative Suite","UI/UX","Typography","Branding"], Job_Satisfaction:84, Remote_Potential:91, Automation_Risk:25},
+{Year:2021, Sector:"Arts", Field:"Designer", Average_Salary:6.4, Demand_Index:73, Skills:["Adobe Creative Suite","UI/UX","Typography","Branding"], Job_Satisfaction:85, Remote_Potential:91, Automation_Risk:25},
+{Year:2022, Sector:"Arts", Field:"Designer", Average_Salary:7.0, Demand_Index:76, Skills:["Adobe Creative Suite","UI/UX","Typography","Branding"], Job_Satisfaction:86, Remote_Potential:92, Automation_Risk:25},
+{Year:2023, Sector:"Arts", Field:"Designer", Average_Salary:7.7, Demand_Index:80, Skills:["Adobe Creative Suite","UI/UX","Typography","Branding"], Job_Satisfaction:87, Remote_Potential:92, Automation_Risk:25},
+{Year:2024, Sector:"Arts", Field:"Designer", Average_Salary:8.4, Demand_Index:84, Skills:["Adobe Creative Suite","UI/UX","Typography","Branding"], Job_Satisfaction:88, Remote_Potential:93, Automation_Risk:25},
+{Year:2025, Sector:"Arts", Field:"Designer", Average_Salary:9.2, Demand_Index:87, Skills:["Adobe Creative Suite","UI/UX","Typography","Branding"], Job_Satisfaction:89, Remote_Potential:93, Automation_Risk:25},
+
+{Year:2018, Sector:"Arts", Field:"Performer", Average_Salary:4.5, Demand_Index:60, Skills:["Acting","Singing","Dancing","Public Speaking"], Job_Satisfaction:90, Remote_Potential:15, Automation_Risk:10},
+{Year:2019, Sector:"Arts", Field:"Performer", Average_Salary:4.9, Demand_Index:62, Skills:["Acting","Singing","Dancing","Public Speaking"], Job_Satisfaction:90, Remote_Potential:18, Automation_Risk:10},
+{Year:2020, Sector:"Arts", Field:"Performer", Average_Salary:5.3, Demand_Index:64, Skills:["Acting","Singing","Dancing","Public Speaking"], Job_Satisfaction:90, Remote_Potential:25, Automation_Risk:10},
+{Year:2021, Sector:"Arts", Field:"Performer", Average_Salary:5.8, Demand_Index:67, Skills:["Acting","Singing","Dancing","Public Speaking"], Job_Satisfaction:91, Remote_Potential:30, Automation_Risk:10},
+{Year:2022, Sector:"Arts", Field:"Performer", Average_Salary:6.3, Demand_Index:70, Skills:["Acting","Singing","Dancing","Public Speaking"], Job_Satisfaction:91, Remote_Potential:35, Automation_Risk:10},
+{Year:2023, Sector:"Arts", Field:"Performer", Average_Salary:6.9, Demand_Index:74, Skills:["Acting","Singing","Dancing","Public Speaking"], Job_Satisfaction:92, Remote_Potential:40, Automation_Risk:10},
+{Year:2024, Sector:"Arts", Field:"Performer", Average_Salary:7.5, Demand_Index:77, Skills:["Acting","Singing","Dancing","Public Speaking"], Job_Satisfaction:92, Remote_Potential:45, Automation_Risk:10},
+{Year:2025, Sector:"Arts", Field:"Performer", Average_Salary:8.2, Demand_Index:80, Skills:["Acting","Singing","Dancing","Public Speaking"], Job_Satisfaction:93, Remote_Potential:50, Automation_Risk:10},
+
+{Year:2018, Sector:"Arts", Field:"Writer", Average_Salary:4.8, Demand_Index:62, Skills:["Creative Writing","Editing","Research","SEO"], Job_Satisfaction:87, Remote_Potential:95, Automation_Risk:35},
+{Year:2019, Sector:"Arts", Field:"Writer", Average_Salary:5.1, Demand_Index:64, Skills:["Creative Writing","Editing","Research","SEO"], Job_Satisfaction:87, Remote_Potential:95, Automation_Risk:35},
+{Year:2020, Sector:"Arts", Field:"Writer", Average_Salary:5.5, Demand_Index:66, Skills:["Creative Writing","Editing","Research","SEO"], Job_Satisfaction:88, Remote_Potential:95, Automation_Risk:35},
+{Year:2021, Sector:"Arts", Field:"Writer", Average_Salary:6.0, Demand_Index:68, Skills:["Creative Writing","Editing","Research","SEO"], Job_Satisfaction:88, Remote_Potential:95, Automation_Risk:35},
+{Year:2022, Sector:"Arts", Field:"Writer", Average_Salary:6.6, Demand_Index:71, Skills:["Creative Writing","Editing","Research","SEO"], Job_Satisfaction:89, Remote_Potential:95, Automation_Risk:35},
+{Year:2023, Sector:"Arts", Field:"Writer", Average_Salary:7.2, Demand_Index:74, Skills:["Creative Writing","Editing","Research","SEO"], Job_Satisfaction:89, Remote_Potential:95, Automation_Risk:35},
+{Year:2024, Sector:"Arts", Field:"Writer", Average_Salary:7.8, Demand_Index:77, Skills:["Creative Writing","Editing","Research","SEO"], Job_Satisfaction:90, Remote_Potential:95, Automation_Risk:35},
+{Year:2025, Sector:"Arts", Field:"Writer", Average_Salary:8.5, Demand_Index:80, Skills:["Creative Writing","Editing","Research","SEO"], Job_Satisfaction:90, Remote_Potential:95, Automation_Risk:35},
+
+{Year:2018, Sector:"Arts", Field:"Fashion Designer", Average_Salary:5.2, Demand_Index:64, Skills:["Sketching","Textile Knowledge","Trend Analysis","Pattern Making"], Job_Satisfaction:85, Remote_Potential:40, Automation_Risk:15},
+{Year:2019, Sector:"Arts", Field:"Fashion Designer", Average_Salary:5.6, Demand_Index:66, Skills:["Sketching","Textile Knowledge","Trend Analysis","Pattern Making"], Job_Satisfaction:85, Remote_Potential:45, Automation_Risk:15},
+{Year:2020, Sector:"Arts", Field:"Fashion Designer", Average_Salary:6.0, Demand_Index:68, Skills:["Sketching","Textile Knowledge","Trend Analysis","Pattern Making"], Job_Satisfaction:86, Remote_Potential:50, Automation_Risk:15},
+{Year:2021, Sector:"Arts", Field:"Fashion Designer", Average_Salary:6.5, Demand_Index:70, Skills:["Sketching","Textile Knowledge","Trend Analysis","Pattern Making"], Job_Satisfaction:86, Remote_Potential:55, Automation_Risk:15},
+{Year:2022, Sector:"Arts", Field:"Fashion Designer", Average_Salary:7.0, Demand_Index:72, Skills:["Sketching","Textile Knowledge","Trend Analysis","Pattern Making"], Job_Satisfaction:87, Remote_Potential:60, Automation_Risk:15},
+{Year:2023, Sector:"Arts", Field:"Fashion Designer", Average_Salary:7.6, Demand_Index:75, Skills:["Sketching","Textile Knowledge","Trend Analysis","Pattern Making"], Job_Satisfaction:87, Remote_Potential:65, Automation_Risk:15},
+{Year:2024, Sector:"Arts", Field:"Fashion Designer", Average_Salary:8.2, Demand_Index:78, Skills:["Sketching","Textile Knowledge","Trend Analysis","Pattern Making"], Job_Satisfaction:88, Remote_Potential:70, Automation_Risk:15},
+{Year:2025, Sector:"Arts", Field:"Fashion Designer", Average_Salary:8.9, Demand_Index:82, Skills:["Sketching","Textile Knowledge","Trend Analysis","Pattern Making"], Job_Satisfaction:88, Remote_Potential:75, Automation_Risk:15}
+    ];
+
+
+    // Chart instances
+    let trendChart, radarChart;
+
+    // Initialize the application
+    document.addEventListener('DOMContentLoaded', function() {
+      // Populate dropdowns
+      const sectorSelect = document.getElementById("sector");
+      const fieldSelect = document.getElementById("field");
+      const sectors = [...new Set(data.map(d => d.Sector))];
+      
+      sectors.forEach(s => {
+        let opt = document.createElement("option");
+        opt.value = s; opt.textContent = s;
+        sectorSelect.appendChild(opt);
+      });
+
+      function updateFields() {
+        fieldSelect.innerHTML = "";
+        let selectedSector = sectorSelect.value;
+        let fields = [...new Set(data.filter(d => d.Sector === selectedSector).map(d => d.Field))];
+        
+        fields.forEach(f => {
+          let opt = document.createElement("option");
+          opt.value = f; opt.textContent = f;
+          fieldSelect.appendChild(opt);
+        });
+      }
+      
+      sectorSelect.addEventListener("change", updateFields);
+      updateFields();
+      
+      // Initialize charts
+      initCharts();
+    });
+
+    function initCharts() {
+      const trendCtx = document.getElementById('trend-chart').getContext('2d');
+      const radarCtx = document.getElementById('radar-chart').getContext('2d');
+      
+      trendChart = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Salary (LPA)',
+            data: [],
+            borderColor: '#1a2a6c',
+            backgroundColor: 'rgba(26, 42, 108, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Salary Trend'
+                      }
+                    }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            title: {
+              display: true,
+              text: 'Salary (LPA)'
+            }
+          }
+        }
+      });
+      
+      radarChart = new Chart(radarCtx, {
+        type: 'radar',
+        data: {
+          labels: ['Demand', 'Job Satisfaction', 'Remote Potential', 'Salary Growth', 'Future Outlook'],
+          datasets: [{
+            label: 'Career Potential',
+            data: [0, 0, 0, 0, 0],
+            backgroundColor: 'rgba(33, 212, 253, 0.2)',
+            borderColor: 'rgba(33, 212, 253, 1)',
+            pointBackgroundColor: 'rgba(33, 212, 253, 1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(33, 212, 253, 1)'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Career Potential Radar'
+            }
+          },
+          scales: {
+            r: {
+              angleLines: {
+                display: true
+              },
+              suggestedMin: 0,
+              suggestedMax: 100
+            }
+          }
+        }
+      });
+    }
+
+    function navigateToResults() {
+      // Validate inputs
+      const name = document.getElementById('name').value;
+      const sector = document.getElementById('sector').value;
+      const field = document.getElementById('field').value;
+      
+      if (!name || !sector || !field) {
+        alert('Please fill in all required fields');
+        return;
+      }
+      
+      // Update user greeting
+      document.getElementById('user-greeting').textContent = `Hello, ${name}`;
+      
+      // Switch to results page
+      document.getElementById('input-page').classList.remove('active-page');
+      document.getElementById('results-page').classList.add('active-page');
+      
+      // Analyze career
+      analyzeCareer();
+    }
+
+    function navigateToInput() {
+      // Switch back to input page
+      document.getElementById('results-page').classList.remove('active-page');
+      document.getElementById('input-page').classList.add('active-page');
+    }
+
+    function analyzeCareer() {
+      const sector = document.getElementById('sector').value;
+      const field = document.getElementById('field').value;
+      const salaryExp = parseFloat(document.getElementById('salary-exp').value);
+      const userSkills = document.getElementById('skills').value.split(',').map(s => s.trim());
+      
+      // Get current field data
+      const currentData = data.filter(d => d.Sector === sector && d.Field === field && d.Year === 2025);
+      if (currentData.length === 0) return;
+      
+      const fieldData = currentData[0];
+      const fieldHistory = data.filter(d => d.Sector === sector && d.Field === field);
+      
+      // Calculate salary alignment
+      const salaryMatch = Math.min(100, Math.round((fieldData.Average_Salary / salaryExp) * 100));
+      document.getElementById('salary-match').textContent = `${salaryMatch}%`;
+      document.getElementById('salary-progress').style.width = `${salaryMatch}%`;
+      document.getElementById('salary-range').textContent = `Predicted Range: ${(fieldData.Average_Salary * 0.85).toFixed(2)} - ${(fieldData.Average_Salary * 1.15).toFixed(2)} LPA`;
+      document.getElementById('salary-expectation').textContent = `Your Expectation: ${salaryExp} LPA`;
+      document.getElementById('current-salary').textContent = `${fieldData.Average_Salary.toFixed(2)} LPA`;
+      document.getElementById('demand-index').textContent = fieldData.Demand_Index;
+      document.getElementById('job-satisfaction').textContent = fieldData.Job_Satisfaction;
+      
+      // Calculate skills match
+      const fieldSkillsList = fieldData.Skills || [];
+      const matchedSkills = userSkills.filter(skill => 
+        fieldSkillsList.some(fs => fs.toLowerCase().includes(skill.toLowerCase()) || 
+                                  skill.toLowerCase().includes(fs.toLowerCase()))
+      );
+      
+      const skillsMatch = fieldSkillsList.length > 0 ? 
+        Math.round((matchedSkills.length / fieldSkillsList.length) * 100) : 0;
+      
+      document.getElementById('skills-match').textContent = `${skillsMatch}%`;
+      document.getElementById('skills-progress').style.width = `${skillsMatch}%`;
+      document.getElementById('skills-covered').textContent = `Skills Covered: ${matchedSkills.length}/${fieldSkillsList.length}`;
+      
+      // Update skills list
+      const skillsList = document.getElementById('skills-list');
+      skillsList.innerHTML = '';
+      
+      fieldSkillsList.forEach(skill => {
+        const li = document.createElement('li');
+        const isMatched = matchedSkills.some(ms => 
+          ms.toLowerCase().includes(skill.toLowerCase()) || 
+          skill.toLowerCase().includes(ms.toLowerCase())
+        );
+        
+        li.innerHTML = isMatched ? 
+          `<span class="skill-match">✓</span> ${skill}` : 
+          `✗ ${skill}`;
+        
+        skillsList.appendChild(li);
+      });
+      
+      // Calculate career score (weighted average of various factors)
+      const careerScore = Math.round(
+        (fieldData.Demand_Index * 0.3) + 
+        (fieldData.Job_Satisfaction * 0.2) + 
+        (fieldData.Remote_Potential * 0.1) + 
+        (salaryMatch * 0.2) + 
+        (skillsMatch * 0.2)
+      );
+      
+      document.getElementById('career-score').textContent = careerScore;
+      
+      // Update insights
+      const insightElement = document.getElementById('career-insight');
+      let insightText = '';
+      
+      if (salaryMatch < 50) {
+        insightText += `Your salary expectation has ${salaryMatch}% alignment. Consider researching current market rates for ${field}. `;
+      } else if (salaryMatch < 80) {
+        insightText += `Your salary expectation has ${salaryMatch}% alignment with market rates. `;
+      } else {
+        insightText += `Excellent! Your salary expectation aligns well (${salaryMatch}%) with market rates. `;
+      }
+      
+      if (skillsMatch === 100) {
+        insightText += 'Outstanding skill match! You have full alignment with required competencies. ';
+      } else if (skillsMatch >= 70) {
+        insightText += `Good skill match! You have ${skillsMatch}% alignment with required competencies. `;
+      } else {
+        insightText += `Consider developing more skills for this field. Your current alignment is ${skillsMatch}%. `;
+      }
+      
+      insightElement.textContent = insightText;
+      
+      // Update automation risk
+      const riskElement = document.getElementById('automation-risk');
+      let riskText = '';
+      
+      if (fieldData.Automation_Risk < 20) {
+        riskText = `Low automation risk (safe career)`;
+      } else if (fieldData.Automation_Risk < 40) {
+        riskText = `Moderate automation risk (evolving landscape)`;
+      } else {
+        riskText = `High automation risk (consider upskilling)`;
+      }
+      
+      riskElement.textContent = riskText;
+      
+      // Update trend chart
+      updateTrendChart(fieldHistory);
+      
+      // Update radar chart
+      updateRadarChart(fieldData, salaryMatch, skillsMatch);
+    }
+
+    function updateTrendChart(fieldHistory) {
+      const labels = fieldHistory.map(d => d.Year);
+      const salaryData = fieldHistory.map(d => d.Average_Salary);
+      
+      trendChart.data.labels = labels;
+      trendChart.data.datasets[0].data = salaryData;
+      trendChart.update();
+    }
+
+    function updateRadarChart(fieldData, salaryMatch, skillsMatch) {
+      // Calculate future outlook based on demand growth and other factors
+      const futureOutlook = Math.min(100, fieldData.Demand_Index + 
+        (2025 - 2018) * 2); // Simple projection based on historical growth
+      
+      const salaryGrowth = Math.min(100, 
+        ((fieldData.Average_Salary - data.find(d => d.Sector === fieldData.Sector && 
+          d.Field === fieldData.Field && d.Year === 2018).Average_Salary) / 
+        fieldData.Average_Salary) * 100 * 5
+      );
+      
+      radarChart.data.datasets[0].data = [
+        fieldData.Demand_Index,
+        fieldData.Job_Satisfaction,
+        fieldData.Remote_Potential,
+        salaryGrowth,
+        futureOutlook
+      ];
+      
+      radarChart.update();
+    }
+
+    function showFuture() {
+      const sector = document.getElementById('sector').value;
+      const field = document.getElementById('field').value;
+      
+      if (!sector || !field) return;
+      
+      const fieldHistory = data.filter(d => d.Sector === sector && d.Field === field);
+      const lastDataPoint = fieldHistory[fieldHistory.length - 1];
+      
+      // Simple projection: extend the trend for 3 more years
+      const projectionYears = [2026, 2027, 2028];
+      const projectionData = projectionYears.map((year, i) => {
+        return lastDataPoint.Average_Salary * Math.pow(1.05, i + 1);
+      });
+      
+      // Update trend chart with projection
+      trendChart.data.labels = [...fieldHistory.map(d => d.Year), ...projectionYears];
+      trendChart.data.datasets[0].data = [...fieldHistory.map(d => d.Average_Salary), ...projectionData];
+      trendChart.update();
+      
+      // Update chart title
+      trendChart.options.plugins.title.text = 'Salary Trend & Forecast';
+      trendChart.update();
+    }
+  </script>
+</body>
+</html>
